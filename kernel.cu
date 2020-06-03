@@ -1,4 +1,6 @@
-
+/*  UNUSED AS OF 6/3
+*   LEFT IT FOR TESTING IF NEEDED
+*/
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include <stdio.h>
@@ -9,13 +11,13 @@ using namespace std;
 using namespace cv;
 
 void cpu_canny();
-
+/*
 int main()
 {
-    cpu_canny();
+    //cpu_canny();
     
     // Test to see if we can read BGR values
-    /*
+    
     Mat img;
     img = imread("Engine_in.PNG");
     int rows = img.rows;
@@ -24,22 +26,24 @@ int main()
     cout << "Rows: " << rows << endl;
     cout << "Cols: " << rows << endl;
     cout << "Depth: " << depth << endl;
- 
+   // uint16_t check;
     for (int r = 0; r < 6; r++)
     {
         for (int c = 0; c < 6; c++)
         {
             Vec3b intensity = img.at<Vec3b>(r, c);
-            cout << "Blue: " << (int)intensity.val[0] << " -- ";
+            //check = img.at<uint16_t>(r, c);
+            cout << "Blue: " << (uint16_t)intensity.val[0] << " -- ";
             cout << "Green: " << (int)intensity.val[1] << " -- ";
             cout << "Red: " << (int)intensity.val[2] << " -- ";
+            //cout << "uint16_t check: " << check;
             cout << endl;
         }
     }
-    */
+    
     return 0;
 }
-
+*/
 void cpu_canny()
 {
     // openCV Matrices to read images
@@ -61,6 +65,7 @@ void cpu_canny()
     {
         cout << "No src picture found" << endl;
     }
+
     // Create matrix of same size and type
     dst.create(src.size(), src.type());
     // Covnert to grayscale

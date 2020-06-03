@@ -41,11 +41,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Mustafa\Desktop\OpenCV4\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Mustafa\Desktop\OpenCV4\include;C:\Users\Mustafa\Desktop\GIt_Repos\CSS490_Final_Proj\CannyEdgeDetection\inc;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Mustafa\Desktop\OpenCV4\x64\vc16\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\Mustafa\Desktop\OpenCV4\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Mustafa\Desktop\OpenCV4\include;C:\Users\Mustafa\Desktop\GIt_Repos\CSS490_Final_Proj\CannyEdgeDetection\inc;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Mustafa\Desktop\OpenCV4\x64\vc16\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -83,7 +83,20 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="canny.cu" />
     <CudaCompile Include="kernel.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="cannyEdgeDetector.cpp" />
+    <ClCompile Include="edgeDetector.cpp" />
+    <ClCompile Include="imgMgr.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="canny.h" />
+    <ClInclude Include="cannyEdgeDetector.h" />
+    <ClInclude Include="edgeDetector.h" />
+    <ClInclude Include="imgMgr.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
