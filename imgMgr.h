@@ -23,7 +23,8 @@ class ImgMgr
 public:
     ImgMgr(char* argv);
     ~ImgMgr();
-
+    ImgMgr* read_frame(cv::Mat img);
+    cv::Mat ImgMgr::write_writeFrame();
     unsigned getImgWidth();
     unsigned getImgHeight();
     unsigned getChannelDepth();
