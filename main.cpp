@@ -1,6 +1,5 @@
 #include <iostream>
 #include "ed_error.h"
-//#include "ed_args.h"
 #include "imgMgr.h"
 #include "cannyEdgeDetector.h"
 #include "canny.h"
@@ -21,7 +20,7 @@ int main(int argc, char** argv)
     std::shared_ptr<ImgMgr> img_mgr = std::make_shared<ImgMgr>(*argv);
     
     /* read input file */
-    img_mgr->read_image("Engine_in.PNG");
+    img_mgr->read_image("C:\\Users\\Mustafa\\Desktop\\test4k.jpg");
 
     /* Instantiate our edge detector */
     CannyEdgeDetector ced(img_mgr);
@@ -30,7 +29,7 @@ int main(int argc, char** argv)
     ced.detect_edges(ser);
 
     /* write results */
-    img_mgr->write_image("C:\\Users\\Mustafa\\Desktop\\sample1.PNG");
+    img_mgr->write_image("C:\\Users\\Mustafa\\Desktop\\sample2.PNG");
     std::cout << "Edge detection complete" << std::endl;
 
     return ED_SUCCESS;

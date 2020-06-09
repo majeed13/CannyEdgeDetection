@@ -32,11 +32,11 @@ void CannyEdgeDetector::detect_edges(bool serial)
     int rows = m_image_mgr->getImgHeight();
     int cols = m_image_mgr->getImgWidth();
 
-    double kernel[KERNEL_SIZE][KERNEL_SIZE];
+    float kernel[KERNEL_SIZE][KERNEL_SIZE]; // unified mem
     populate_blur_kernel(kernel);
 
     pixel_t* rgb_buf = new pixel_t[input_pixel_length];
-    pixel_channel_t* single_channel_buf0 = new pixel_channel_t[input_pixel_length];
+    pixel_channel_t* single_channel_buf0 = new pixel_channel_t[input_pixel_length]; // unified memory
 
     assert(nullptr != rgb_buf);
     assert(nullptr != single_channel_buf0);
@@ -98,14 +98,14 @@ void CannyEdgeDetector::detect_edges(bool serial)
 ///
 /// This function is used to slightly blur the image to remove noise and spurious edges.
 ///
-void CannyEdgeDetector::apply_gaussian_filter(pixel_t* out_pixels, pixel_t* in_pixels, double kernel[KERNEL_SIZE][KERNEL_SIZE])
+void CannyEdgeDetector::apply_gaussian_filter(pixel_t* out_pixels, pixel_t* in_pixels, float kernel[KERNEL_SIZE][KERNEL_SIZE])
 {
     int rows = m_image_mgr->getImgHeight();
     int cols = m_image_mgr->getImgWidth();
-    double kernelSum;
-    double redPixelVal;
-    double greenPixelVal;
-    double bluePixelVal;
+    float kernelSum;
+    float redPixelVal;
+    float greenPixelVal;
+    float bluePixelVal;
 
     //Apply Kernel to image
     for (int pixNum = 0; pixNum < rows * cols; ++pixNum) {
@@ -393,21 +393,21 @@ void CannyEdgeDetector::apply_hysteresis(pixel_channel_t* out_pixels, pixel_chan
 ///
 /// \brief Helpfer function to create convolutional kernel for gaussian blur.
 ///
-void CannyEdgeDetector::populate_blur_kernel(double out_kernel[KERNEL_SIZE][KERNEL_SIZE])
+void CannyEdgeDetector::populate_blur_kernel(float out_kernel[KERNEL_SIZE][KERNEL_SIZE])
 {
-    double scaleVal = 1;
-    double stDev = (double)KERNEL_SIZE / 3;
+    float scaleVal = 1;
+    float stDev = (float)KERNEL_SIZE / 3;
 
     for (int i = 0; i < KERNEL_SIZE; ++i) {
         for (int j = 0; j < KERNEL_SIZE; ++j) {
-            double xComp = pow((i - KERNEL_SIZE / 2), 2);
-            double yComp = pow((j - KERNEL_SIZE / 2), 2);
+            float xComp = pow((i - KERNEL_SIZE / 2), 2);
+            float yComp = pow((j - KERNEL_SIZE / 2), 2);
 
-            double stDevSq = pow(stDev, 2);
-            double pi = M_PI;
+            float stDevSq = pow(stDev, 2);
+            float pi = M_PI;
 
             //calculate the value at each index of the Kernel
-            double kernelVal = exp(-(((xComp)+(yComp)) / (2 * stDevSq)));
+            float kernelVal = exp(-(((xComp)+(yComp)) / (2 * stDevSq)));
             kernelVal = (1 / (sqrt(2 * pi) * stDev)) * kernelVal;
 
             //populate Kernel

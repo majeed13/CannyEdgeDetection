@@ -18,10 +18,10 @@
 /// \brief Apply gaussian filter. This is the CUDA kernel for applying a gaussian blur to an image.
 ///
 __global__
-void cu_apply_gaussian_filter(pixel_t* in_pixels, pixel_t* out_pixels, int rows, int cols, double* in_kernel)
+void cu_apply_gaussian_filter(pixel_t* in_pixels, pixel_t* out_pixels, int rows, int cols, float* in_kernel)
 {
     //copy kernel array from global memory to a shared array
-    __shared__ double kernel[KERNEL_SIZE][KERNEL_SIZE];
+    __shared__ float kernel[KERNEL_SIZE][KERNEL_SIZE];
     for (int i = 0; i < KERNEL_SIZE; ++i) {
         for (int j = 0; j < KERNEL_SIZE; ++j) {
             kernel[i][j] = in_kernel[i * KERNEL_SIZE + j];
@@ -34,28 +34,37 @@ void cu_apply_gaussian_filter(pixel_t* in_pixels, pixel_t* out_pixels, int rows,
     int pixNum = blockIdx.x * blockDim.x + threadIdx.x;
     if (pixNum >= 0 && pixNum < rows * cols) {
 
-        double kernelSum;
-        double redPixelVal;
-        double greenPixelVal;
-        double bluePixelVal;
+        float kernelSum;
+        float redPixelVal;
+        float greenPixelVal;
+        float bluePixelVal;
 
         //Apply Kernel to each pixel of image
         for (int i = 0; i < KERNEL_SIZE; ++i) {
+            //check edge cases, if within bounds, apply filter
+            if ( ((pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols) >= 0))
+                    && ((pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols) <= rows * cols - 1)) ) {
+
+                    redPixelVal += kernel[i][0] * in_pixels[pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols)].red;
+                    greenPixelVal += kernel[i][0] * in_pixels[pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols)].green;
+                    bluePixelVal += kernel[i][0] * in_pixels[pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols)].blue;
+                    kernelSum += kernel[i][0];
+            }    
+        }
             for (int j = 0; j < KERNEL_SIZE; ++j) {
 
                 //check edge cases, if within bounds, apply filter
-                if (((pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols) + j - ((KERNEL_SIZE - 1) / 2)) >= 0)
-                    && ((pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols) + j - ((KERNEL_SIZE - 1) / 2)) <= rows * cols - 1)
-                    && (((pixNum % cols) + j - ((KERNEL_SIZE - 1) / 2)) >= 0)
+                if (
+                    (((pixNum % cols) + j - ((KERNEL_SIZE - 1) / 2)) >= 0)
                     && (((pixNum % cols) + j - ((KERNEL_SIZE - 1) / 2)) <= (cols - 1))) {
 
-                    redPixelVal += kernel[i][j] * in_pixels[pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols) + j - ((KERNEL_SIZE - 1) / 2)].red;
-                    greenPixelVal += kernel[i][j] * in_pixels[pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols) + j - ((KERNEL_SIZE - 1) / 2)].green;
-                    bluePixelVal += kernel[i][j] * in_pixels[pixNum + ((i - ((KERNEL_SIZE - 1) / 2)) * cols) + j - ((KERNEL_SIZE - 1) / 2)].blue;
-                    kernelSum += kernel[i][j];
+                    redPixelVal += kernel[0][j] * in_pixels[pixNum + j - ((KERNEL_SIZE - 1) / 2)].red;
+                    greenPixelVal += kernel[0][j] * in_pixels[pixNum + j - ((KERNEL_SIZE - 1) / 2)].green;
+                    bluePixelVal += kernel[0][j] * in_pixels[pixNum + j - ((KERNEL_SIZE - 1) / 2)].blue;
+                    kernelSum += kernel[0][j];
                 }
             }
-        }
+        
 
         //update output image
         out_pixels[pixNum].red = redPixelVal / kernelSum;
@@ -500,7 +509,7 @@ void cu_test_hysteresis(pixel_channel_t* in, pixel_channel_t* out, unsigned rows
 // Entry point for serial program calling CUDA implementation
 //*****************************************************************************************
 
-void cu_detect_edges(pixel_channel_t* final_pixels, pixel_t* orig_pixels, int rows, int cols, double kernel[KERNEL_SIZE][KERNEL_SIZE])
+void cu_detect_edges(pixel_channel_t* final_pixels, pixel_t* orig_pixels, int rows, int cols, float kernel[KERNEL_SIZE][KERNEL_SIZE])
 {
     /* kernel execution configuration parameters */
     int num_blks = (rows * cols) / 1024;
@@ -510,16 +519,17 @@ void cu_detect_edges(pixel_channel_t* final_pixels, pixel_t* orig_pixels, int ro
     pixel_channel_t t_low = 0xF5;
 
     /* device buffers */
-    pixel_t* in, * out;
+    //pixel_t* in, * out; // move to unified memory
+    pixel_t * out;
     pixel_channel_t* single_channel_buf0;
     pixel_channel_t* single_channel_buf1;
     pixel_channel_t_signed* deltaX;
     pixel_channel_t_signed* deltaY;
-    double* d_blur_kernel;
+    float* d_blur_kernel; // move to unified memory
     unsigned* idx_map;
 
     /* allocate device memory */
-    cudaMalloc((void**)&in, sizeof(pixel_t) * rows * cols);
+    //cudaMalloc((void**)&in, sizeof(pixel_t) * rows * cols);
     cudaMalloc((void**)&out, sizeof(pixel_t) * rows * cols);
     cudaMalloc((void**)&single_channel_buf0, sizeof(pixel_channel_t) * rows * cols);
     cudaMalloc((void**)&single_channel_buf1, sizeof(pixel_channel_t) * rows * cols);
@@ -529,14 +539,14 @@ void cu_detect_edges(pixel_channel_t* final_pixels, pixel_t* orig_pixels, int ro
     cudaMalloc((void**)&d_blur_kernel, sizeof(d_blur_kernel[0]) * KERNEL_SIZE * KERNEL_SIZE);
 
     /* data transfer image pixels to device */
-    cudaMemcpy(in, orig_pixels, rows * cols * sizeof(pixel_t), cudaMemcpyHostToDevice);
+    //cudaMemcpy(in, orig_pixels, rows * cols * sizeof(pixel_t), cudaMemcpyHostToDevice);
     cudaMemcpy(d_blur_kernel, kernel, sizeof(d_blur_kernel[0]) * KERNEL_SIZE * KERNEL_SIZE, cudaMemcpyHostToDevice);
 
     /* run canny edge detection core - CUDA kernels */
     /* use streams to ensure the kernels are in the same task */
     cudaStream_t stream;
     cudaStreamCreate(&stream);
-    cu_apply_gaussian_filter << <num_blks, thd_per_blk, grid, stream >> > (in, out, rows, cols, d_blur_kernel);
+    cu_apply_gaussian_filter << <num_blks, thd_per_blk, grid, stream >> > (orig_pixels, out, rows, cols, d_blur_kernel);
     cu_compute_intensity_gradient << <num_blks, thd_per_blk, grid, stream >> > (out, deltaX, deltaY, rows, cols);
     cu_magnitude << <num_blks, thd_per_blk, grid, stream >> > (deltaX, deltaY, single_channel_buf0, rows, cols);
     cu_suppress_non_max << <num_blks, thd_per_blk, grid, stream >> > (single_channel_buf0, deltaX, deltaY, single_channel_buf1, rows, cols);
@@ -550,7 +560,7 @@ void cu_detect_edges(pixel_channel_t* final_pixels, pixel_t* orig_pixels, int ro
     cudaMemcpy(final_pixels, single_channel_buf0, rows * cols * sizeof(pixel_channel_t), cudaMemcpyDeviceToHost);
 
     /* cleanup */
-    cudaFree(in);
+    //cudaFree(in);
     cudaFree(out);
     cudaFree(single_channel_buf0);
     cudaFree(single_channel_buf1);

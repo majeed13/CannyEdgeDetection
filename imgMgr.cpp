@@ -1,5 +1,6 @@
 #include <iostream>
 #include <assert.h>
+#include "cuda_runtime.h"
 #include "imgMgr.h"
 
 ///
@@ -19,7 +20,8 @@ ImgMgr::ImgMgr(char* argv)
 ImgMgr::~ImgMgr(void)
 {
     if (m_pixels != nullptr) {
-        delete[] m_pixels;
+        cudaFree(m_pixels);
+        //delete[] m_pixels;
     }
 }
 
@@ -86,11 +88,14 @@ void ImgMgr::read_image(const std::string& in_filename)
 
     // Delete prev or create new pixel_t array
     if (nullptr == m_pixels) {
-        m_pixels = new pixel_t[getPixelCount()]; // free'd in destructor
+        //m_pixels = new pixel_t[getPixelCount()]; // free'd in destructor
+        cudaMallocManaged(&m_pixels, getPixelCount() * sizeof(pixel_t));
     }
     else {
-        delete[] m_pixels;
-        m_pixels = new pixel_t[getPixelCount()]; // free'd in destructor
+        //delete[] m_pixels;
+        //m_pixels = new pixel_t[getPixelCount()]; // free'd in destructor
+        cudaFree(m_pixels);
+        cudaMallocManaged(&m_pixels, getPixelCount() * sizeof(pixel_t));
     }
         assert(nullptr != m_pixels);
 

@@ -12,9 +12,9 @@
 #include "ed_pixel.h"
 
 ///
-/// \brief Image manager class
+/// --Image manager class
 ///
-/// Wrapper for image wrangling library, in our case libmagick++
+/// Wrapper for image wrangling library, in our case openCV
 /// Provides utilites to open and close image files, and provides 
 /// the edge detector class with access to the image data.
 ///
