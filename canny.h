@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ed_pixel.h"
-#define KERNEL_SIZE 28
+#define KERNEL_SIZE 7
 
 /* primary canny kernel interface */
 void cu_detect_edges(pixel_channel_t* final_pixels, pixel_t* orig_pixels, int rows, int cols, float kernel[KERNEL_SIZE][KERNEL_SIZE]);

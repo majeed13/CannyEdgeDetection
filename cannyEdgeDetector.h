@@ -1,7 +1,7 @@
 #pragma once
 #ifndef _CANNY_EDGE_DETECTOR_H_
 #define _CANNY_EDGE_DETECTOR_H_
-#define KERNEL_SIZE 28
+#define KERNEL_SIZE 7
 #include "edgeDetector.h"
 
 ///
